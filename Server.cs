@@ -6,114 +6,151 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.IO;
+using System.Threading;
 
 namespace HTTPServer
 {
-    class Server
-    {
-        Socket serverSocket;
+	class Server
+	{
+		Socket serverSocket;
+		const int messageCapacity = 2048;
 
-        public Server(int portNumber, string redirectionMatrixPath)
-        {
-            //TODO: call this.LoadRedirectionRules passing redirectionMatrixPath to it
-            //TODO: initialize this.serverSocket
-        }
+		public Server(int portNumber, string redirectionMatrixPath)
+		{
+			//TODO: call this.LoadRedirectionRules passing redirectionMatrixPath to it
+			this.LoadRedirectionRules();
+			//TODO: initialize this.serverSocket
+			try
+			{
+				serverSocket = new Socket(AddressFamily.InterNetwork,
+										  SocketType.Stream,
+										  ProtocolType.Tcp);
+				serverSocket.Bind(new IPEndPoint(IPAddress.Any, portNumber));
+			}
+			catch (Exception ex)
+			{
+				Logger.LogException(ex);
+			}
+		}
 
-        public void StartServer()
-        {
-            // TODO: Listen to connections, with large backlog.
+		public void StartServer()
+		{
+			// TODO: Listen to connections, with large backlog.
+			serverSocket.Listen(128);
+			// TODO: Accept connections in while loop and start a thread for each connection on function "Handle Connection"
+			while (true)
+			{
+				//TODO: accept connections and start thread for each accepted connection.
+				Socket clientSocket = serverSocket.Accept();
+				Logger.LogConsole($"Client ({((IPEndPoint)rsock.RemoteEndPoint).
+					Address.ToString())}) Connected"):
 
-            // TODO: Accept connections in while loop and start a thread for each connection on function "Handle Connection"
-            while (true)
-            {
-                //TODO: accept connections and start thread for each accepted connection.
+				Thread clientThread = new Thread(new ParameterizedThreadStart(HandleConnection));
+				clientThread.Start(clientSocket);
+			}
+		}
 
-            }
-        }
+		public void HandleConnection(object obj)
+		{
+			// TODO: Create client socket 
+			// set client socket ReceiveTimeout = 0 to indicate an infinite time-out period
+			Socket clientSocket = (Socket) obj;
+			clientSocket.ReceiveTimeout(0);
+			byte[] msg = new byte[messageCapacity];
+			string requestString;
+			
+			// TODO: receive requests in while true until remote client closes the socket.
+			while (true)
+			{
+				try
+				{
+					// TODO: Receive request
+					int messageLength = clientSocket.Receive(msg);
+					// TODO: break the while loop if receivedLen==0
+					if (messageLength == 0)
+					{
+						Logger($"Client ({((IPEndPoint)rsock.RemoteEndPoint).
+							Address.ToString())}) Disconnected");
+						break;
+					}
+					// TODO: Create a Request object using received request string
+					requestString = Encoding.ASCII.GetString(msg,
+															 messageLength);
+					Request request = new Request(request);
+					// TODO: Call HandleRequest Method that returns the response
+					HandleRequest(request);
+					// TODO: Send Response back to client
 
-        public void HandleConnection(object obj)
-        {
-            // TODO: Create client socket 
-            // set client socket ReceiveTimeout = 0 to indicate an infinite time-out period
-            
-            // TODO: receive requests in while true until remote client closes the socket.
-            while (true)
-            {
-                try
-                {
-                    // TODO: Receive request
+				}
+				catch (Exception ex)
+				{
+					// TODO: log exception using Logger class
+					Logger.LogException(ex);
+				}
+			}
 
-                    // TODO: break the while loop if receivedLen==0
+			// TODO: close client socket
+			clientSocket.Close();
+		}
 
-                    // TODO: Create a Request object using received request string
+		Response HandleRequest(Request request)
+		{
+			throw new NotImplementedException();
+			string content;
+			try
+			{
+				//TODO: check for bad request
+				
+				//TODO: map the relativeURI in request to get the physical path of the resource.
 
-                    // TODO: Call HandleRequest Method that returns the response
+				//TODO: check for redirect
 
-                    // TODO: Send Response back to client
+				//TODO: check file exists
 
-                }
-                catch (Exception ex)
-                {
-                    // TODO: log exception using Logger class
-                }
-            }
+				//TODO: read the physical file
 
-            // TODO: close client socket
-        }
+				// Create OK response
+			}
+			catch (Exception ex)
+			{
+				// TODO: log exception using Logger class
+				Logger.LogException(ex);
+				// TODO: in case of exception, return Internal Server Error. 
+			}
+		}
 
-        Response HandleRequest(Request request)
-        {
-            throw new NotImplementedException();
-            string content;
-            try
-            {
-                //TODO: check for bad request 
+		private string GetRedirectionPagePathIFExist(string relativePath)
+		{
+			// using Configuration.RedirectionRules return the redirected page path if exists else returns empty
+			
+			return string.Empty;
+		}
 
-                //TODO: map the relativeURI in request to get the physical path of the resource.
+		private string LoadDefaultPage(string defaultPageName)
+		{
+			string filePath = Path.Combine(Configuration.RootPath, defaultPageName);
+			// TODO: check if filepath not exist log exception using Logger class and return empty string
+			
+			// else read file and return its content
+			return string.Empty;
+		}
 
-                //TODO: check for redirect
-
-                //TODO: check file exists
-
-                //TODO: read the physical file
-
-                // Create OK response
-            }
-            catch (Exception ex)
-            {
-                // TODO: log exception using Logger class
-                // TODO: in case of exception, return Internal Server Error. 
-            }
-        }
-
-        private string GetRedirectionPagePathIFExist(string relativePath)
-        {
-            // using Configuration.RedirectionRules return the redirected page path if exists else returns empty
-            
-            return string.Empty;
-        }
-
-        private string LoadDefaultPage(string defaultPageName)
-        {
-            string filePath = Path.Combine(Configuration.RootPath, defaultPageName);
-            // TODO: check if filepath not exist log exception using Logger class and return empty string
-            
-            // else read file and return its content
-            return string.Empty;
-        }
-
-        private void LoadRedirectionRules(string filePath)
-        {
-            try
-            {
-                // TODO: using the filepath paramter read the redirection rules from file 
-                // then fill Configuration.RedirectionRules dictionary 
-            }
-            catch (Exception ex)
-            {
-                // TODO: log exception using Logger class
-                Environment.Exit(1);
-            }
-        }
-    }
+		private void LoadRedirectionRules(string filePath)
+		{
+			try
+			{
+				// TODO: using the filepath paramter read the redirection rules from file 
+				StreamReader sr = new StreamReader(filePath);
+				string[] rule = sr.ReadLine().Split(',');
+				// then fill Configuration.RedirectionRules dictionary 
+				Configuration.RedirectionRules.Add(rule[0], rule[1]);
+			}
+			catch (Exception ex)
+			{
+				// TODO: log exception using Logger class
+				Logger.LogException(ex);
+				Environment.Exit(1);
+			}
+		}
+	}
 }
