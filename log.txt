@@ -1,0 +1,5 @@
+[12/27/2021 6:32:25 PM] System.Net.Sockets.SocketException (13): Permission denied
+   at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, String callerName)
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at HTTPServer.Server..ctor(Int32 portNumber, String redirectionMatrixPath) in /home/ms47/Documents/Programming/University/Networking/HTTPServer/Server.cs:line 30

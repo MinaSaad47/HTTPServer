@@ -14,11 +14,13 @@ namespace HTTPServer
 	{
 		Socket serverSocket;
 		const int messageCapacity = 2048;
+		int portNumber;
 
 		public Server(int portNumber, string redirectionMatrixPath)
 		{
+			this.portNumber = portNumber;
 			//TODO: call this.LoadRedirectionRules passing redirectionMatrixPath to it
-			this.LoadRedirectionRules();
+			LoadRedirectionRules(redirectionMatrixPath);
 			//TODO: initialize this.serverSocket
 			try
 			{
@@ -38,12 +40,12 @@ namespace HTTPServer
 			// TODO: Listen to connections, with large backlog.
 			serverSocket.Listen(128);
 			// TODO: Accept connections in while loop and start a thread for each connection on function "Handle Connection"
+			Logger.LogConsole($"Listenning on {((IPEndPoint) serverSocket.RemoteEndPoint).Address.ToString()}:{portNumber}");
 			while (true)
 			{
 				//TODO: accept connections and start thread for each accepted connection.
 				Socket clientSocket = serverSocket.Accept();
-				Logger.LogConsole($"Client ({((IPEndPoint)rsock.RemoteEndPoint).
-					Address.ToString())}) Connected"):
+				Logger.LogConsole($"Client ({((IPEndPoint) clientSocket.RemoteEndPoint).Address.ToString()}) Connected");
 
 				Thread clientThread = new Thread(new ParameterizedThreadStart(HandleConnection));
 				clientThread.Start(clientSocket);
@@ -55,7 +57,7 @@ namespace HTTPServer
 			// TODO: Create client socket 
 			// set client socket ReceiveTimeout = 0 to indicate an infinite time-out period
 			Socket clientSocket = (Socket) obj;
-			clientSocket.ReceiveTimeout(0);
+			clientSocket.ReceiveTimeout = 0;
 			byte[] msg = new byte[messageCapacity];
 			string requestString;
 			
@@ -69,18 +71,17 @@ namespace HTTPServer
 					// TODO: break the while loop if receivedLen==0
 					if (messageLength == 0)
 					{
-						Logger($"Client ({((IPEndPoint)rsock.RemoteEndPoint).
-							Address.ToString())}) Disconnected");
+						Logger.LogConsole($"Client ({((IPEndPoint) clientSocket.RemoteEndPoint).Address.ToString()}) Disconnected");
 						break;
 					}
 					// TODO: Create a Request object using received request string
-					requestString = Encoding.ASCII.GetString(msg,
+					requestString = Encoding.ASCII.GetString(msg, 0,
 															 messageLength);
-					Request request = new Request(request);
+					Request request = new Request(requestString);
 					// TODO: Call HandleRequest Method that returns the response
-					HandleRequest(request);
+					Response response = HandleRequest(request);
 					// TODO: Send Response back to client
-
+					clientSocket.Send(Encoding.ASCII.GetBytes(response.ResponseString));
 				}
 				catch (Exception ex)
 				{
@@ -95,34 +96,72 @@ namespace HTTPServer
 
 		Response HandleRequest(Request request)
 		{
-			throw new NotImplementedException();
+			// throw new NotImplementedException();
+			StatusCode code;
+			string contentType = "text/html";
 			string content;
+			string redirectionPath;
+			Response response;
+			bool isBadRequest;
+			string filePath = Configuration.RootPath;
 			try
 			{
 				//TODO: check for bad request
-				
+				if (request.ParseRequest())
+				{
+					code = StatusCode.OK;
 				//TODO: map the relativeURI in request to get the physical path of the resource.
-
+					filePath += request.relativeURI;
 				//TODO: check for redirect
-
+					filePath = GetRedirectionPagePathIFExist(request.relativeURI);
 				//TODO: check file exists
-
+					if (File.Exists(filePath) &&
+						!String.IsNullOrEmpty(filePath))
+					{
 				//TODO: read the physical file
-
-				// Create OK response
+						filePath += request.relativeURI;
+						Logger.LogConsole($"File Path: {request.relativeURI}");
+					}
+					content = File.ReadAllText(filePath);
+				//TODO Create OK response
+					response = new Response(code, contentType, content,
+											filePath);
+					Logger.LogConsole("Good Request");
+					return response;
+				}
+				else
+				{
+					code = StatusCode.BadRequest;
+					filePath += $"/{Configuration.BadRequestDefaultPageName}";
+					content = File.ReadAllText(filePath);
+					response = new Response(code, contentType, content,
+											string.Empty);
+					Logger.LogConsole("Bad Request");
+					return response;
+				}
 			}
 			catch (Exception ex)
 			{
 				// TODO: log exception using Logger class
 				Logger.LogException(ex);
 				// TODO: in case of exception, return Internal Server Error. 
+				filePath += $"/{Configuration.InternalErrorDefaultPageName}";
+				content = File.ReadAllText(filePath);
+				response = new Response(StatusCode.InternalServerError,
+										contentType, content,
+										string.Empty);
+				return response;
 			}
 		}
 
 		private string GetRedirectionPagePathIFExist(string relativePath)
 		{
 			// using Configuration.RedirectionRules return the redirected page path if exists else returns empty
-			
+			if (Configuration.RedirectionRules.ContainsKey(relativePath))
+			{
+				Logger.LogConsole($"Redirection: {relativePath}");
+				return $"{Configuration.RootPath}/{relativePath}";
+			}
 			return string.Empty;
 		}
 
@@ -140,10 +179,14 @@ namespace HTTPServer
 			try
 			{
 				// TODO: using the filepath paramter read the redirection rules from file 
-				StreamReader sr = new StreamReader(filePath);
-				string[] rule = sr.ReadLine().Split(',');
 				// then fill Configuration.RedirectionRules dictionary 
-				Configuration.RedirectionRules.Add(rule[0], rule[1]);
+				Configuration.RedirectionRules = new Dictionary<string, string>();
+				foreach (string line in File.ReadLines(filePath))
+				{
+					string[] rule = line.Split(',');
+					Logger.LogConsole($"Rule: {rule[0]} => {rule[1]}");
+					Configuration.RedirectionRules.Add(rule[0], rule[1]);
+				}
 			}
 			catch (Exception ex)
 			{

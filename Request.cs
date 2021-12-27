@@ -62,6 +62,8 @@ namespace HTTPServer
 			}
 			// Load header lines into HeaderLines dictionary
 			LoadHeaderLines();
+
+			return true;
 		}
 
 		private bool ParseRequestLine()
@@ -72,14 +74,14 @@ namespace HTTPServer
 			else if (requestLines[0] == "POST")
 				method = RequestMethod.POST;
 			else if (requestLines[0] == "HEAD")
-				method = "HEAD";
+				method = RequestMethod.HEAD;
 			else
 			{
 				Logger.LogConsole($"Invalid HTTP Method: {requestLines[0]}");
 				return false;
 			}
 
-			if (!ValidateIsURI(relativeURI[1]))
+			if (!ValidateIsURI(relativeURI))
 			{
 				Logger.LogConsole($"Invalid Url: {requestLines[0]}");
 				return false;
@@ -98,7 +100,7 @@ namespace HTTPServer
 				Logger.LogConsole($"Invalid HTTP Version: {requestLines[2]}");
 				return false;
 			}
-
+			return true;
 		}
 
 		private bool ValidateIsURI(string uri)
@@ -109,9 +111,9 @@ namespace HTTPServer
 		private bool LoadHeaderLines()
 		{
 			throw new NotImplementedException();
-			for (int i = 1; i < lines.Length - 2; i++)
+			for (int i = 1; i < requestLines.Length - 2; i++)
 			{
-				string[] dictEntry = lines[i].Split(": ");
+				string[] dictEntry = requestLines[i].Split(": ");
 				HeaderLines.Add(dictEntry[0], dictEntry[1]);
 			}
 		}
@@ -119,11 +121,13 @@ namespace HTTPServer
 		private bool ValidateBlankLine()
 		{
 			// throw new NotImplementedException();
-			if (lines[lines.Length - 2] != "\r\n" !!
-				lines[lines.Length - 1] != "\r\n")
+			if (requestLines[requestLines.Length - 2] != "\r\n" ||
+				requestLines[requestLines.Length - 1] != "\r\n")
 			{
 				return false;
 			}
+
+			return true;
 		}
 
 	}

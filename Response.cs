@@ -6,7 +6,6 @@ using System.IO;
 
 namespace HTTPServer
 {
-
 	public enum StatusCode
 	{
 		OK = 200,
@@ -30,19 +29,24 @@ namespace HTTPServer
 		List<string> headerLines = new List<string>();
 		public Response(StatusCode code, string contentType, string content, string redirectoinPath)
 		{
-			throw new NotImplementedException();
 			// TODO: Add headlines (Content-Type, Content-Length,Date, [location if there is redirection])
-
-
+			responseString = $"{GetStatusLine(code)}\r\n";
+			headerLines.Add("Server: HTTPServer");
+			headerLines.Add($"Date: {DateTime.Now}");
 			// TODO: Create the request string
-
+			headerLines.Add($"Content-Type: {contentType}");
+			headerLines.Add($"Content-Length: {content.Length}");
+			foreach (string header in headerLines)
+			{
+				responseString += $"{header}\r\n";
+			}
+			responseString += $"\r\n{content}\r\n\r\n";
 		}
 
 		private string GetStatusLine(StatusCode code)
 		{
 			// TODO: Create the response status line and return it
-			string statusLine = string.Empty;
-
+			string statusLine = $"{Configuration.ServerHTTPVersion} {(int) code} {code.ToString()}";
 			return statusLine;
 		}
 	}
