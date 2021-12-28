@@ -15,6 +15,7 @@ namespace HTTPServer
         public static string BadRequestDefaultPageName = "BadRequest.html";
         public static string NotFoundDefaultPageName = "NotFound.html";
         public static string InternalErrorDefaultPageName = "InternalError.html";
+		public static string MainPage = "main.html";
 
     }
 }

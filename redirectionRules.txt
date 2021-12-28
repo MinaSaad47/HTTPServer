@@ -1,1 +1,1 @@
-aboutus,aboutus2
+/aboutus.html,/aboutus2.html

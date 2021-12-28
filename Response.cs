@@ -36,6 +36,11 @@ namespace HTTPServer
 			// TODO: Create the request string
 			headerLines.Add($"Content-Type: {contentType}");
 			headerLines.Add($"Content-Length: {content.Length}");
+			Logger.LogConsole($"StatusCode: {(int) code} ({code.ToString()})");
+			if (code == StatusCode.Redirect)
+			{
+				headerLines.Add($"Location: {Path.GetFileName(redirectoinPath)}");
+			}
 			foreach (string header in headerLines)
 			{
 				responseString += $"{header}\r\n";

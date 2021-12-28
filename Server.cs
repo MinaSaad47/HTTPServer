@@ -40,7 +40,7 @@ namespace HTTPServer
 			// TODO: Listen to connections, with large backlog.
 			serverSocket.Listen(128);
 			// TODO: Accept connections in while loop and start a thread for each connection on function "Handle Connection"
-			Logger.LogConsole($"Listenning on {((IPEndPoint) serverSocket.RemoteEndPoint).Address.ToString()}:{portNumber}");
+			Logger.LogConsole($"Listenning on {((IPEndPoint) serverSocket.LocalEndPoint).Address.ToString()}:{portNumber}");
 			while (true)
 			{
 				//TODO: accept connections and start thread for each accepted connection.
@@ -103,7 +103,7 @@ namespace HTTPServer
 			string redirectionPath;
 			Response response;
 			bool isBadRequest;
-			string filePath = Configuration.RootPath;
+			string filePath;
 			try
 			{
 				//TODO: check for bad request
@@ -111,28 +111,50 @@ namespace HTTPServer
 				{
 					code = StatusCode.OK;
 				//TODO: map the relativeURI in request to get the physical path of the resource.
-					filePath += request.relativeURI;
 				//TODO: check for redirect
-					filePath = GetRedirectionPagePathIFExist(request.relativeURI);
-				//TODO: check file exists
-					if (File.Exists(filePath) &&
-						!String.IsNullOrEmpty(filePath))
+					if (request.relativeURI == "/")
 					{
-				//TODO: read the physical file
-						filePath += request.relativeURI;
-						Logger.LogConsole($"File Path: {request.relativeURI}");
+						Logger.LogConsole($"Main Page: {Configuration.MainPage}");
+						filePath = $"{Configuration.RootPath}/{Configuration.MainPage}";
+					}
+					else
+					{
+						filePath = GetRedirectionPagePathIFExist(request.relativeURI);
+					//TODO: check file exists
+						if (string.IsNullOrEmpty(filePath)) // Not Redirection.
+						{
+					//TODO: read the physical file
+							filePath = $"{Configuration.RootPath}{request.relativeURI}";
+							if (!File.Exists(filePath))
+							{
+								Logger.LogConsole($"File ({request.relativeURI}) Not Found");
+								Logger.LogConsole($"Not Found: {request.relativeURI} => {Configuration.NotFoundDefaultPageName}");
+								filePath = $"{Configuration.RootPath}/{Configuration.NotFoundDefaultPageName}";
+								code = StatusCode.NotFound;
+							}
+							{
+								Logger.LogConsole($"File Path: {request.relativeURI}");
+							}
+						}
+						else // Redirection
+						{
+							code = StatusCode.Redirect;
+							content = File.ReadAllText($"{Configuration.RootPath}/{Configuration.RedirectionDefaultPageName}");
+							response = new Response(code, contentType, content,
+													filePath);
+							return response;
+						}
 					}
 					content = File.ReadAllText(filePath);
 				//TODO Create OK response
 					response = new Response(code, contentType, content,
 											filePath);
-					Logger.LogConsole("Good Request");
 					return response;
 				}
 				else
 				{
 					code = StatusCode.BadRequest;
-					filePath += $"/{Configuration.BadRequestDefaultPageName}";
+					filePath = $"{Configuration.RootPath}/{Configuration.BadRequestDefaultPageName}";
 					content = File.ReadAllText(filePath);
 					response = new Response(code, contentType, content,
 											string.Empty);
@@ -145,7 +167,7 @@ namespace HTTPServer
 				// TODO: log exception using Logger class
 				Logger.LogException(ex);
 				// TODO: in case of exception, return Internal Server Error. 
-				filePath += $"/{Configuration.InternalErrorDefaultPageName}";
+				filePath = $"{Configuration.RootPath}/{Configuration.InternalErrorDefaultPageName}";
 				content = File.ReadAllText(filePath);
 				response = new Response(StatusCode.InternalServerError,
 										contentType, content,
@@ -159,8 +181,8 @@ namespace HTTPServer
 			// using Configuration.RedirectionRules return the redirected page path if exists else returns empty
 			if (Configuration.RedirectionRules.ContainsKey(relativePath))
 			{
-				Logger.LogConsole($"Redirection: {relativePath}");
-				return $"{Configuration.RootPath}/{relativePath}";
+				Logger.LogConsole($"Redirection: {relativePath} => {Configuration.RedirectionRules[relativePath]}");
+				return Configuration.RedirectionRules[relativePath];
 			}
 			return string.Empty;
 		}

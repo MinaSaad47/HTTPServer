@@ -16,7 +16,7 @@ namespace HTTPServer
             
 			//Start server
 			// 1) Make server object on port 1000
-			Server httpServer = new Server(1000, "redirectionRules.txt");
+			Server httpServer = new Server(4747, "redirectionRules.txt");
 			// 2) Start Server
 			httpServer.StartServer();
 		}
@@ -28,7 +28,7 @@ namespace HTTPServer
 			// example: "aboutus.html,aboutus2.html"
 			// means that when making request to aboustus.html,, it redirects me to aboutus2
 			StreamWriter sw = new StreamWriter("redirectionRules.txt");
-			sw.WriteLine("aboutus,aboutus2");
+			sw.WriteLine("/aboutus.html,/aboutus2.html");
 
 			sw.Flush();
 		}

@@ -51,17 +51,26 @@ namespace HTTPServer
 			string[] lines = this.requestString.Split("\r\n");
 			// check that there is atleast 3 lines: Request line, Host Header, Blank line (usually 4 lines with the last empty line for empty content)
 			if (lines.Length < 3)
-				return false;
-			// Parse Request line
-			requestLines = lines[0].Split(' ');
-			// Validate blank line exists
-			if (!ValidateBlankLine())
 			{
-				Logger.LogConsole("ValidateBlankLine Failed");
+				Logger.LogConsole($"{lines.Length} lines Only");
 				return false;
 			}
+			foreach (string line in lines)
+			{
+				Logger.LogConsole($"> {line}");
+			}
+			// Parse Request line
+			requestLines = lines[0].Split(' ');
+			if (!ParseRequestLine())
+				return false;
+			// Validate blank line exists
+			// if (!ValidateBlankLine())
+			// {
+			// 	return false;
+			// }
 			// Load header lines into HeaderLines dictionary
-			LoadHeaderLines();
+			if (!LoadHeaderLines())
+				return false;
 
 			return true;
 		}
@@ -81,13 +90,13 @@ namespace HTTPServer
 				return false;
 			}
 
+			relativeURI = requestLines[1];
 			if (!ValidateIsURI(relativeURI))
 			{
-				Logger.LogConsole($"Invalid Url: {requestLines[0]}");
+				Logger.LogConsole($"Invalid Url: {relativeURI}");
 				return false;
 			}
 
-			relativeURI = requestLines[1];
 
 			if (requestLines[2] == "HTTP/1.1")
 				httpVersion = HTTPVersion.HTTP11;
@@ -110,20 +119,21 @@ namespace HTTPServer
 
 		private bool LoadHeaderLines()
 		{
-			throw new NotImplementedException();
+			// throw new NotImplementedException();
 			for (int i = 1; i < requestLines.Length - 2; i++)
 			{
 				string[] dictEntry = requestLines[i].Split(": ");
 				HeaderLines.Add(dictEntry[0], dictEntry[1]);
 			}
+			return true;
 		}
 
 		private bool ValidateBlankLine()
 		{
-			// throw new NotImplementedException();
-			if (requestLines[requestLines.Length - 2] != "\r\n" ||
-				requestLines[requestLines.Length - 1] != "\r\n")
+			throw new NotImplementedException();
+			if (!string.Equals(requestLines[requestLines.Length - 2], "\r\n"))
 			{
+				Logger.LogConsole("ValidateBlankLine Failed");
 				return false;
 			}
 
