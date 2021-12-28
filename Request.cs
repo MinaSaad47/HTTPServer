@@ -59,10 +59,10 @@ namespace HTTPServer
 			if (!ParseRequestLine())
 				return false;
 			// Validate blank line exists
-			// if (!ValidateBlankLine())
-			// {
-			// 	return false;
-			// }
+			if (!ValidateBlankLine())
+			{
+				return false;
+			}
 			// Load header lines into HeaderLines dictionary
 			if (!LoadHeaderLines())
 				return false;
@@ -128,8 +128,8 @@ namespace HTTPServer
 
 		private bool ValidateBlankLine()
 		{
-			throw new NotImplementedException();
-			if (!string.Equals(requestLines[requestLines.Length - 2], "\r\n"))
+			// throw new NotImplementedException();
+			if (requestLines[requestLines.Length - 2] != String.Empty)
 			{
 				Logger.LogConsole("ValidateBlankLine Failed");
 				return false;
