@@ -1,1 +1,2 @@
 aboutus.html,aboutus2.html
+dir_redir.html,dir/redirection_dir.html

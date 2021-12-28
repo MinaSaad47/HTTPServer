@@ -30,6 +30,7 @@ namespace HTTPServer
 			// means that when making request to aboustus.html,, it redirects me to aboutus2
 			StreamWriter sw = new StreamWriter(redirectionRulesPath);
 			sw.WriteLine("aboutus.html,aboutus2.html");
+			sw.WriteLine("dir_redir.html,dir/redirection_dir.html");
 
 			sw.Flush();
 			sw.Close();

@@ -38,7 +38,7 @@ namespace HTTPServer
 			headerLines.Add($"Content-Length: {content.Length}");
 			if (code == StatusCode.Redirect)
 			{
-				headerLines.Add($"Location: {Path.GetFileName(redirectoinPath)}");
+				headerLines.Add($"Location: {redirectoinPath}");
 			}
 			foreach (string header in headerLines)
 			{
