@@ -1,8 +1,9 @@
 #!/bin/sh
+TEST_FILE="test_urls.txt"
 
-curl -v  "http://localhost:4747/dir/Redirect.html" &>/dev/null & # 200 OK
-curl -v  "http://localhost:4747/notfound.html" &>/dev/null & # 404 NotFound
-curl -v  "http://localhost:4747/" &>/dev/null & # 200 OK
-curl -v  "http://localhost:4747/aboutus2.html" &>/dev/null & # 200 OK
-curl -v  "http://localhost:4747/aboutus.html" &>/dev/null & # 301 Redirect
-
+while read entry; do
+	expected="$(echo $entry | cut -d ' ' -f 1)[$(echo $entry | cut -d ' ' -f 2)]"
+	url="$(echo "$entry" | cut -d ' ' -f 3)"
+	printf "Testing: %-50s Expected (%-20s Got [%s])\n" \
+		$url $expected $(curl -o /dev/null -s -w "%{http_code}" $url) &
+done < $TEST_FILE
