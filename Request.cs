@@ -119,7 +119,7 @@ namespace HTTPServer
 			headerLines = new Dictionary<string, string>();
 			for (int i = 1; i < requestLines.Length - 2; i++)
 			{
-				Logger.LogConsole($"(Header) {requestLines[i]}");
+				// Logger.LogConsole($"(Header) {requestLines[i]}");
 				string[] dictEntry = requestLines[i].Split(": ");
 				HeaderLines.Add(dictEntry[0], dictEntry[1]);
 			}

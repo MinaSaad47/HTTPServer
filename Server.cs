@@ -131,6 +131,7 @@ namespace HTTPServer
 								filePath = $"{Configuration.RootPath}/{Configuration.NotFoundDefaultPageName}";
 								code = StatusCode.NotFound;
 							}
+							else
 							{
 								Logger.LogConsole($"Requested Page: {request.relativeURI}");
 							}
