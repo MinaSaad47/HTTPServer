@@ -31,12 +31,11 @@ namespace HTTPServer
 		{
 			// TODO: Add headlines (Content-Type, Content-Length,Date, [location if there is redirection])
 			responseString = $"{GetStatusLine(code)}\r\n";
-			headerLines.Add("Server: HTTPServer");
+			headerLines.Add($"Server: {Configuration.ServerType}");
 			headerLines.Add($"Date: {DateTime.Now}");
 			// TODO: Create the request string
 			headerLines.Add($"Content-Type: {contentType}");
 			headerLines.Add($"Content-Length: {content.Length}");
-			Logger.LogConsole($"StatusCode: {(int) code} ({code.ToString()})");
 			if (code == StatusCode.Redirect)
 			{
 				headerLines.Add($"Location: {Path.GetFileName(redirectoinPath)}");
@@ -51,6 +50,7 @@ namespace HTTPServer
 		private string GetStatusLine(StatusCode code)
 		{
 			// TODO: Create the response status line and return it
+			Logger.LogConsole($"StatusCode: {(int) code} ({code.ToString()})");
 			string statusLine = $"{Configuration.ServerHTTPVersion} {(int) code} {code.ToString()}";
 			return statusLine;
 		}

@@ -48,19 +48,14 @@ namespace HTTPServer
 			// throw new NotImplementedException();
 
 			//TODO: parse the receivedRequest using the \r\n delimeter
-			string[] lines = this.requestString.Split("\r\n");
+			requestLines = this.requestString.Split("\r\n");
 			// check that there is atleast 3 lines: Request line, Host Header, Blank line (usually 4 lines with the last empty line for empty content)
-			if (lines.Length < 3)
+			if (requestLines.Length < 3)
 			{
-				Logger.LogConsole($"{lines.Length} lines Only");
+				Logger.LogConsole($"{requestLines.Length} lines Only");
 				return false;
 			}
-			foreach (string line in lines)
-			{
-				Logger.LogConsole($"> {line}");
-			}
 			// Parse Request line
-			requestLines = lines[0].Split(' ');
 			if (!ParseRequestLine())
 				return false;
 			// Validate blank line exists
@@ -78,19 +73,20 @@ namespace HTTPServer
 		private bool ParseRequestLine()
 		{
 			// throw new NotImplementedException();
-			if(requestLines[0] == "GET")
+			string[] reqLine = requestLines[0].Split(' ');
+			if(reqLine[0] == "GET")
 				method = RequestMethod.GET;
-			else if (requestLines[0] == "POST")
+			else if (reqLine[0] == "POST")
 				method = RequestMethod.POST;
-			else if (requestLines[0] == "HEAD")
+			else if (reqLine[0] == "HEAD")
 				method = RequestMethod.HEAD;
 			else
 			{
-				Logger.LogConsole($"Invalid HTTP Method: {requestLines[0]}");
+				Logger.LogConsole($"Invalid HTTP Method: {reqLine[0]}");
 				return false;
 			}
 
-			relativeURI = requestLines[1];
+			relativeURI = reqLine[1];
 			if (!ValidateIsURI(relativeURI))
 			{
 				Logger.LogConsole($"Invalid Url: {relativeURI}");
@@ -98,15 +94,15 @@ namespace HTTPServer
 			}
 
 
-			if (requestLines[2] == "HTTP/1.1")
+			if (reqLine[2] == "HTTP/1.1")
 				httpVersion = HTTPVersion.HTTP11;
-			else if (requestLines[2] == "HTTP/1.0")
+			else if (reqLine[2] == "HTTP/1.0")
 				httpVersion = HTTPVersion.HTTP10;
-			else if (requestLines[2] == "HTTP/0.9")
+			else if (reqLine[2] == "HTTP/0.9")
 				httpVersion = HTTPVersion.HTTP09;
 			else
 			{
-				Logger.LogConsole($"Invalid HTTP Version: {requestLines[2]}");
+				Logger.LogConsole($"Invalid HTTP Version: {reqLine[2]}");
 				return false;
 			}
 			return true;
@@ -120,8 +116,10 @@ namespace HTTPServer
 		private bool LoadHeaderLines()
 		{
 			// throw new NotImplementedException();
+			headerLines = new Dictionary<string, string>();
 			for (int i = 1; i < requestLines.Length - 2; i++)
 			{
+				Logger.LogConsole($"(Header) {requestLines[i]}");
 				string[] dictEntry = requestLines[i].Split(": ");
 				HeaderLines.Add(dictEntry[0], dictEntry[1]);
 			}

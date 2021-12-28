@@ -9,6 +9,7 @@ namespace HTTPServer
 {
 	class Program
 	{
+		static string redirectionRulesPath = "redirectionRules.txt";
 		static void Main(string[] args)
 		{
 			// TODO: Call CreateRedirectionRulesFile() function to create the rules of redirection 
@@ -16,7 +17,7 @@ namespace HTTPServer
             
 			//Start server
 			// 1) Make server object on port 1000
-			Server httpServer = new Server(4747, "redirectionRules.txt");
+			Server httpServer = new Server(4747, redirectionRulesPath);
 			// 2) Start Server
 			httpServer.StartServer();
 		}
@@ -27,10 +28,11 @@ namespace HTTPServer
 			// each line in the file specify a redirection rule
 			// example: "aboutus.html,aboutus2.html"
 			// means that when making request to aboustus.html,, it redirects me to aboutus2
-			StreamWriter sw = new StreamWriter("redirectionRules.txt");
-			sw.WriteLine("/aboutus.html,/aboutus2.html");
+			StreamWriter sw = new StreamWriter(redirectionRulesPath);
+			sw.WriteLine("aboutus.html,aboutus2.html");
 
 			sw.Flush();
+			sw.Close();
 		}
 	}
 }

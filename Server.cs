@@ -127,13 +127,12 @@ namespace HTTPServer
 							filePath = $"{Configuration.RootPath}{request.relativeURI}";
 							if (!File.Exists(filePath))
 							{
-								Logger.LogConsole($"File ({request.relativeURI}) Not Found");
 								Logger.LogConsole($"Not Found: {request.relativeURI} => {Configuration.NotFoundDefaultPageName}");
 								filePath = $"{Configuration.RootPath}/{Configuration.NotFoundDefaultPageName}";
 								code = StatusCode.NotFound;
 							}
 							{
-								Logger.LogConsole($"File Path: {request.relativeURI}");
+								Logger.LogConsole($"Requested Page: {request.relativeURI}");
 							}
 						}
 						else // Redirection
@@ -158,7 +157,6 @@ namespace HTTPServer
 					content = File.ReadAllText(filePath);
 					response = new Response(code, contentType, content,
 											string.Empty);
-					Logger.LogConsole("Bad Request");
 					return response;
 				}
 			}
@@ -179,10 +177,11 @@ namespace HTTPServer
 		private string GetRedirectionPagePathIFExist(string relativePath)
 		{
 			// using Configuration.RedirectionRules return the redirected page path if exists else returns empty
-			if (Configuration.RedirectionRules.ContainsKey(relativePath))
+			string baseName = Path.GetFileName(relativePath);
+			if (Configuration.RedirectionRules.ContainsKey(baseName))
 			{
-				Logger.LogConsole($"Redirection: {relativePath} => {Configuration.RedirectionRules[relativePath]}");
-				return Configuration.RedirectionRules[relativePath];
+				Logger.LogConsole($"Redirection: {baseName} => {Configuration.RedirectionRules[baseName]}");
+				return Configuration.RedirectionRules[baseName];
 			}
 			return string.Empty;
 		}
